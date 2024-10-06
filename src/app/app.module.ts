@@ -8,11 +8,13 @@ import { ConfigModule } from '@nestjs/config';
 import { Users } from 'src/users/entity/users.entity';
 import { Tasks } from 'src/tasks/entity/tasks.entity';
 import { TasksModule } from 'src/tasks/tasks.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
     UsersModule,
     TasksModule,
+    AuthModule,
     ConfigModule.forRoot({
       isGlobal:true
     }), 

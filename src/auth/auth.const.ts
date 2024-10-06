@@ -1,0 +1,1 @@
+export const REQ_USER_PAYLOAD = 'users'

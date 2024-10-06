@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Tasks } from './entity/tasks.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskDto } from './dtos/create-task.dto';
 import { UpdateTaskDto } from './dtos/update-task.dto';
+import { UsersService } from 'src/users/users.service';
+import { TokenDto } from 'src/auth/dtos/token.dto';
 
 @Injectable()
 export class TasksService {
     constructor(
         @InjectRepository(Tasks)
-        private readonly tasksRepository:Repository<Tasks>
+        private readonly tasksRepository:Repository<Tasks>,
+        private readonly userService:UsersService
     ){}
 
     findAll(){
@@ -17,16 +20,17 @@ export class TasksService {
     }
 
     findOne(id:number){
-        return this.tasksRepository.findOne({where: {id:id},relations:['user']});
+        const user = this.tasksRepository.findOne({where: {id:id},relations:['user']});
+        if(!user){
+            throw new NotFoundException('User not exists');
+        }
+        return user
     }
 
-    async createOne(body:CreateTaskDto){
-        const {userId,data} = body;
-        const user = await this.findOne(userId);
-        if(!user){
-            throw new NotFoundException('User not found');
-        }
-
+    async createOne(id:number,body:CreateTaskDto){
+        const {data} = body;
+        const user = await this.userService.findOne(id);
+        console.log(user);
         const task = this.tasksRepository.create({
             data:data,
             user:user,
@@ -37,11 +41,15 @@ export class TasksService {
         return task;
     }
 
-    async updateOne(id:number,body:UpdateTaskDto){
+    async updateOne(id:number,body:UpdateTaskDto,token:TokenDto){
         const {done,data} = body;
         const task = await this.findOne(id);
         if(!task){
             throw new NotFoundException('Task not found');
+        }
+
+        if(task.user.id !== token.sub){
+            throw new UnauthorizedException('This task dont belongs to you')
         }
         
         task.data = data;

@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { IsEmail } from 'class-validator';
 import { Tasks } from 'src/tasks/entity/tasks.entity';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
@@ -12,6 +13,7 @@ export class Users {
     email: string;
 
     @Column({length:255})
+    @Exclude()
     passwordHash:string;
 
     @Column({length:100})

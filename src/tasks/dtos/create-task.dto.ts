@@ -5,8 +5,4 @@ export class CreateTaskDto {
     @MaxLength(255)
     @IsNotEmpty()
     data: string;
-
-    @IsNotEmpty()
-    userId: number;
-
 }
