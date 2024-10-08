@@ -19,8 +19,8 @@ export class TasksService {
         return this.tasksRepository.find({relations:['user']});
     }
 
-    findOne(id:number){
-        const user = this.tasksRepository.findOne({where: {id:id},relations:['user']});
+    async findOne(id:number){
+        const user = await this.tasksRepository.findOne({where: {id:id},relations:['user']});
         if(!user){
             throw new NotFoundException('User not exists');
         }
@@ -44,9 +44,6 @@ export class TasksService {
     async updateOne(id:number,body:UpdateTaskDto,token:TokenDto){
         const {done,data} = body;
         const task = await this.findOne(id);
-        if(!task){
-            throw new NotFoundException('Task not found');
-        }
 
         if(task.user.id !== token.sub){
             throw new UnauthorizedException('This task dont belongs to you')
@@ -57,5 +54,14 @@ export class TasksService {
 
         await this.tasksRepository.save(task);
         return task;
+    }
+
+    async deleteOne(id:number,token:TokenDto){
+        const task = await this.findOne(id);
+        if(task.user.id !== token.sub){
+            throw new UnauthorizedException('This task dont belongs to you')
+        }
+        await this.tasksRepository.delete(task);
+        return this.findAll()
     }
 }

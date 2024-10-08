@@ -7,6 +7,7 @@ import { HashingServiceProtocol } from './hashing/hashing.service';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshTokenDto } from './dtos/refresh-token.dto';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +20,7 @@ export class AuthService {
         private readonly jwtService:JwtService
     ){}
 
-    async login(loginDto:LoginDto){
+    async login(loginDto:LoginDto) {
         let passwordIsValid = false;
 
         const user = await this.usersRepository.findOne({where: {email:loginDto.email}});
@@ -35,19 +36,55 @@ export class AuthService {
             throw new UnauthorizedException('User or password invalid');
         }
 
-        const acessToken = await this.jwtService.signAsync(
+        const { acessToken, refreshToken } = await this.createTokens(user);
+
+        return {acessToken,refreshToken};
+    }
+
+    private async createTokens(user: Users) {
+        const acessToken = await this.signJwtAsync<Partial<Users>>(
+            user.id,
+            this.jwtConfiguration.jwtTtl,
+            { email: user.email}
+        );
+
+        const refreshToken = await this.signJwtAsync(
+            user.id,
+            this.jwtConfiguration.jwtRefreshTtl
+        );
+        return { acessToken, refreshToken };
+    }
+
+    private async signJwtAsync<T>(sub:number,expiresIn:number,payload?:T) {
+        return await this.jwtService.signAsync(
             {
-                sub: user.id,
-                email:user.email
+                sub,
+                ...payload
             },
             {
                 audience: this.jwtConfiguration.audience,
                 issuer: this.jwtConfiguration.issuer,
                 secret: this.jwtConfiguration.secret,
-                expiresIn: this.jwtConfiguration.jwtTtl
+                expiresIn: expiresIn
             }
-        )
+        );
+    }
 
-        return {acessToken};
+    async refreshTokens(refreshTokenDto:RefreshTokenDto){
+        try {
+            const {sub} = await this.jwtService.verifyAsync(
+                refreshTokenDto.refreshToken,
+                this.jwtConfiguration
+            );
+            const user = await this.usersRepository.findOneBy({
+                id:sub
+            });
+            if(!user){
+                throw new Error('User not found');
+            }
+            return this.createTokens(user);
+        } catch (error) {
+            throw new UnauthorizedException(error.message)
+        }
     }
 }

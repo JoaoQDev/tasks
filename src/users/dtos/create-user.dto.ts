@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
+import { RoutePolicies } from "src/auth/enum/route-policies.enum";
 
 export class CreateUserDto {
     @IsString()

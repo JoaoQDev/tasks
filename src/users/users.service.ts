@@ -69,22 +69,18 @@ export class UsersService {
       ];
     }
 
-    async update(id:number,body:UpdateUserDto){
+    async update(id:number,updateUserDto:UpdateUserDto){
         const dataUser = {
-            name: body?.name
+            name: updateUserDto?.name
         };
-        if(body?.newPassword && body?.currentPassword){
-            const user = await this.usersRepository.findOne({where: {id:id}});
-            if(!user){
-                throw new NotFoundException('User not found');
-            }
+        if(updateUserDto?.newPassword && updateUserDto?.currentPassword){
+            const user = await this.findOne(id);
             const userPassword:string = user.passwordHash;
-            console.log(user);
-            const isPasswordMatching = await this.hashPassword.compare(body.currentPassword,userPassword);
+            const isPasswordMatching = await this.hashPassword.compare(updateUserDto.currentPassword,userPassword);
             if(!isPasswordMatching){
                 throw new NotAcceptableException('Passwords dont match')
             }
-            const hash = await this.hashPassword.hash(body.newPassword);
+            const hash = await this.hashPassword.hash(updateUserDto.newPassword);
             dataUser['passwordHash'] = hash;
         }
 

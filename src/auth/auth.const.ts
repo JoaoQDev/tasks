@@ -1,1 +1,2 @@
-export const REQ_USER_PAYLOAD = 'users'
+export const REQ_USER_PAYLOAD = 'REQ_USER_PAYLOAD'
+export const ROUTE_POLICY_KEY =  'ROUTE_POLICY_KEY'

@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
 import { IsEmail } from 'class-validator';
+import { RoutePolicies } from 'src/auth/enum/route-policies.enum';
 import { Tasks } from 'src/tasks/entity/tasks.entity';
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
@@ -22,6 +23,9 @@ export class Users {
     // One person to many tasks
     @OneToMany(() => Tasks,(task) => task.user)
     tasks: Tasks[];
+
+    @Column({default:'user'})
+    policy: RoutePolicies;
 
     @CreateDateColumn()
     createdAt?: Date;
