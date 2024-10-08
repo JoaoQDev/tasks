@@ -15,7 +15,7 @@ export class Tasks {
     done: boolean;
     
     // Many tasks to one person
-    @ManyToOne(() => Users, (user) => user.tasks)
+    @ManyToOne(() => Users, (user) => user.tasks,{onDelete:'CASCADE'})
     user: Users;
 
     @CreateDateColumn()

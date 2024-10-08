@@ -41,16 +41,15 @@ export class TasksService {
         return task;
     }
 
-    async updateOne(id:number,body:UpdateTaskDto,token:TokenDto){
-        const {done,data} = body;
+    async updateOne(id:number,updateTaskDto:Partial<UpdateTaskDto>,token:TokenDto){
         const task = await this.findOne(id);
 
         if(task.user.id !== token.sub){
             throw new UnauthorizedException('This task dont belongs to you')
         }
         
-        task.data = data;
-        task.done = done;
+        task.data = updateTaskDto?.data;
+        task.done = updateTaskDto?.done;
 
         await this.tasksRepository.save(task);
         return task;
