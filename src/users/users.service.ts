@@ -9,6 +9,7 @@ import { plainToInstance } from 'class-transformer';
 import { JwtService } from '@nestjs/jwt';
 import jwtConfig from 'src/auth/config/jwt.config';
 import { ConfigType } from '@nestjs/config';
+import { TokenDto } from 'src/auth/dtos/token.dto';
 
 @Injectable()
 export class UsersService {
@@ -101,5 +102,11 @@ export class UsersService {
         const user = await this.findOne(id);
         await this.usersRepository.delete(user.id);
         return this.findAll();
+    }
+
+    async upload(file:Express.Multer.File,token:TokenDto){
+        return {
+            ...file
+        }
     }
 }

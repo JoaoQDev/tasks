@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, SetMetadata, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, SetMetadata, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Users } from './entity/users.entity';
@@ -13,6 +13,9 @@ import { TokenDto } from 'src/auth/dtos/token.dto';
 import { RoutePoliceGuard } from 'src/auth/guards/route-police.guard';
 import { SetRoutePolicy } from 'src/auth/decorators/set-route-policy.decorator';
 import { RoutePolicies } from 'src/auth/enum/route-policies.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 
 
 @Controller('users')
@@ -67,5 +70,18 @@ export class UsersController {
     @SetRoutePolicy(RoutePolicies.admin)
     adminUpdateOne(@Param('id',ParseIntPipe) id:number,@Body() updateUserDto:UpdateUserDto){
         return this.userService.update(id,updateUserDto);
+    }
+
+    @Post('/upload-picture')
+    @UseGuards(RoutePoliceGuard)
+    @UseInterceptors(FileInterceptor('file'))
+    @UseGuards(AuthTokenGuard)
+    @SetRoutePolicy(RoutePolicies.user)
+    upload(@UploadedFile() file:Express.Multer.File,@TokenPayloadParam() token:TokenDto){
+        const mimeType = file.mimetype;
+        const fileExtension = path.extname(file.originalname);
+        console.log(fileExtension);
+
+        return this.userService.upload(file,token);
     }
 }
